@@ -4,6 +4,23 @@ import { ApiResponse } from "../utils/AppiResponse.js";
 import { cloudinaryUpload } from "../utils/cloudinary.js";
 import { User } from "../models/user.models.js";
 
+// Token generating
+const generateAcessToken = async (userId) => {
+  try {
+    const user = User.findById(userId);
+
+    const token = user.generateToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    return token;
+  } catch (error) {
+    throw new ApiError(500, "something went wrong while generating token");
+  }
+};
+//--------------------------------------------------------------------------------------
+
+// user register controller
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -41,5 +58,47 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(200, createdUser, "user registered succesfully"));
 });
+// -----------------------------------------------------------------------------------------
 
-export default registerUser;
+// user login controller
+const logInUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  if ((!email, !password)) {
+    throw new ApiError(400, "all field are empty");
+  }
+
+  const user = User.findOne({ email });
+  if (!user) {
+    throw new ApiError(400, "user dosn't exist");
+  }
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+
+  if (!isPasswordValid) {
+    throw new ApiError(401, "invalid user credentials");
+  }
+  const token = await generateAcessToken(user._id);
+
+  const logedIn = await findById(user._id).select("-password");
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res
+    .status(200)
+    .cookie("token", token, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: logedIn,
+          token,
+        },
+        "user logged in successfully"
+      )
+    );
+});
+
+export { registerUser, logInUser };

@@ -62,9 +62,11 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // user login controller
 const logInUser = asyncHandler(async (req, res) => {
+  console.log(req.body);
   const { email, password } = req.body;
-  if ((!email, !password)) {
-    throw new ApiError(400, "all field are empty");
+
+  if (!(email, password)) {
+    throw new ApiError(400, "Fill in the form with both email and password");
   }
 
   const user = User.findOne({ email });

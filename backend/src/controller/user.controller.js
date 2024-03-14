@@ -103,4 +103,9 @@ const logInUser = asyncHandler(async (req, res) => {
     );
 });
 
-export { registerUser, logInUser };
+const humUser = asyncHandler(async (req, res) => {
+  const Name = req.body;
+  console.log(Name, req.body);
+});
+
+export { registerUser, logInUser, humUser };

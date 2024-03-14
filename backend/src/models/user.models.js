@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userModel = new mongoose.Schema(
   {
@@ -37,14 +38,14 @@ userModel.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-userModel.methods.generateToken = async function () {
+userModel.methods.generateToken = function () {
   return jwt.sign(
     {
       _id: this._id,
     },
     process.env.TOKEN_SECRET,
     {
-      expireIn: process.env.TOKEN_EXPIRY,
+      expiresIn: process.env.TOKEN_EXPIRY,
     }
   );
 };

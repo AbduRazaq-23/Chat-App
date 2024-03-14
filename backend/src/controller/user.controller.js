@@ -5,9 +5,13 @@ import { cloudinaryUpload } from "../utils/cloudinary.js";
 import { User } from "../models/user.models.js";
 
 // Token generating
-const generateAcessToken = async (userId) => {
+const generateTokens = async (userId) => {
   try {
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
+    console.log(user);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
 
     const token = user.generateToken();
 
@@ -15,9 +19,11 @@ const generateAcessToken = async (userId) => {
 
     return token;
   } catch (error) {
-    throw new ApiError(500, "something went wrong while generating token");
+    console.error(error);
+    throw new ApiError(500, "Something went wrong while generating token");
   }
 };
+
 //--------------------------------------------------------------------------------------
 
 // user register controller
@@ -61,51 +67,46 @@ const registerUser = asyncHandler(async (req, res) => {
 // -----------------------------------------------------------------------------------------
 
 // user login controller
+
 const logInUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const { email, password } = req.body;
 
   if (!(email, password)) {
     throw new ApiError(400, "Fill in the form with both email and password");
   }
 
-  const user = User.findOne({ email });
+  const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError(400, "user dosn't exist");
   }
 
-  const isPasswordValid = await user.isPasswordCorrect(password);
+  const isCorrect = await user.isPasswordCorrect(password);
 
-  if (!isPasswordValid) {
-    throw new ApiError(401, "invalid user credentials");
+  if (!isCorrect) {
+    return res.status(401).json({ message: "Incorrect password" });
   }
-  const token = await generateAcessToken(user._id);
+  const token = await generateTokens(user._id);
 
-  const logedIn = await findById(user._id).select("-password");
+  const logedIn = await User.findById(user._id).select("-password ");
+  if (!logedIn) {
+    throw new ApiError(404, "user not found");
+  }
 
   const options = {
     httpOnly: true,
     secure: true,
   };
 
-  return res
-    .status(200)
-    .cookie("token", token, options)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: logedIn,
-          token,
-        },
-        "user logged in successfully"
-      )
-    );
+  return res.status(200).cookie("token", token, options).json(
+    new ApiResponse(
+      200,
+      {
+        logedIn,
+        token,
+      },
+      "user logged in successfully"
+    )
+  );
 });
 
-const humUser = asyncHandler(async (req, res) => {
-  const Name = req.body;
-  console.log(Name, req.body);
-});
-
-export { registerUser, logInUser, humUser };
+export { registerUser, logInUser };

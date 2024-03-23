@@ -43,8 +43,11 @@ const accessChat = asyncHandler(async (req, res) => {
       "users",
       "-password"
     );
-
-    throw new ApiResponse(200, fullChat, "chat has been created successfully");
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, fullChat, "chat has been created successfully")
+      );
   } catch (error) {
     throw new ApiError(401, error.message);
   }

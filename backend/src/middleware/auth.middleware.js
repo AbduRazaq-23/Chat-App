@@ -16,7 +16,7 @@ const authorized = asyncHandler(async (req, res, next) => {
       //decodes token id
       const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
 
-      req.user = await User.findById(decoded.id).select("-password");
+      req.user = await User.findById(decoded._id).select("-password");
 
       next();
     } catch (error) {
@@ -27,7 +27,7 @@ const authorized = asyncHandler(async (req, res, next) => {
 
   if (!token) {
     res.status(401);
-    throw new ApiError(500, "Not authorized, no token");
+    throw new ApiError(401, "Not authorized, no token");
   }
 });
 

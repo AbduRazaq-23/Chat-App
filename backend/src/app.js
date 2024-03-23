@@ -18,6 +18,6 @@ import bodyParser from "body-parser";
 
 //routes declaration
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/chats", chatRouter);
+app.use("/api/v2/chats", chatRouter);
 
 export { app };
